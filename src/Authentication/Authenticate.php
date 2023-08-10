@@ -19,22 +19,23 @@ class Authenticate
 
     public function __construct(ClientInterface $client = null)
     {
-        $this->clientId = config('myob.client_id');
+        $this->clientId     = config('myob.client_id');
         $this->clientSecret = config('myob.client_secret');
-        $this->redirectUrl = config('myob.redirect_url');
-        $this->grantType = config('myob.grant_type');
-        $this->scope = config('myob.scope');
+        $this->redirectUrl  = url(config('myob.redirect_uri'));
+        $this->grantType    = config('myob.grant_type');
+        $this->scope        = config('myob.scope');
 
         $this->client = $client ?? new Client();
     }
 
     public function getAuthUrl(): string
     {
-        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $this->clientId . '&redirect_uri=' . $this->redirectUrl . '&response_type=code&scope=' . $this->scope);
+        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $this->clientId . '&redirect_uri=' . urlencode($this->redirectUrl) . '&response_type=code&scope=' . $this->scope);
     }
 
     /**
      * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getToken($refreshToken = null, $code = null)
     {
@@ -45,14 +46,15 @@ class Authenticate
         }
 
         $response = $this->client->post('https://secure.myob.com/oauth2/v1/authorize', [
-            'headers' => [
+            'headers'     => [
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
             'form_params' => [
-                'client_id' => $this->clientId,
+                'client_id'     => $this->clientId,
                 'client_secret' => $this->clientSecret,
-                'grant_type' => $refreshToken ? 'refresh_token' : $this->grantType,
-                'code' => $code,
+                'redirect_uri'  => $this->redirectUrl,
+                'grant_type'    => $refreshToken ? 'refresh_token' : $this->grantType,
+                'code'          => $code,
                 'refresh_token' => $refreshToken,
             ],
         ]);
@@ -63,10 +65,25 @@ class Authenticate
 
         $body = json_decode($response->getBody()->getContents(), true);
 
-        return  MyobConfiguration::updateOrCreate(['id' => 1], [
-            'access_token' => $body['access_token'],
+        return $this->updateConfiguration([
+            'access_token'  => $body['access_token'],
             'refresh_token' => $body['refresh_token'],
-            'scope' => $body['scope'],
+            'scope'         => $body['scope'],
         ]);
+    }
+
+    public function saveCompanyFileCredentials($data)
+    {
+        $this->updateConfiguration([
+            'company_file_token' => base64_encode($data['username']) . ':' . base64_encode($data['password']),
+            'company_file_id'    => $data['company_file_id'],
+            'company_file_name'  => $data['company_file_name'],
+            'company_file_uri'   => stripslashes($data['company_file_uri']),
+        ]);
+    }
+
+    protected function updateConfiguration($data)
+    {
+        return MyobConfiguration::updateOrCreate(['id' => 1], $data);
     }
 }

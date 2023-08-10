@@ -48,14 +48,18 @@ class MYOB
         ]);
     }
 
-    public function get($endpoint, ?array $options = null)
+    public function get($endpoint, array $options = [])
     {
-        $this->getRequest()->get($endpoint, $options);
+        return $this->getRequest()->get($endpoint, $options);
     }
 
     public function post($endpoint, $data)
     {
-        $this->getRequest()->post($endpoint, $data);
+        return $this->getRequest()->post($endpoint, $data);
     }
 
+    public function isConnected(): bool
+    {
+        return MyobConfiguration::count() > 0;
+    }
 }

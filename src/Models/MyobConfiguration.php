@@ -13,6 +13,12 @@ class MyobConfiguration extends Model
         'expires_at' => 'datetime',
     ];
 
+    protected $hidden = [
+        'access_token',
+        'refresh_token',
+        'company_file_token',
+    ];
+
     public static function booted()
     {
         static::saving(function (MyobConfiguration $model) {
