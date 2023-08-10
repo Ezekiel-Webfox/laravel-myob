@@ -40,11 +40,10 @@ class MYOB
 
         return new MYOBRequest([
             'Authorization'     => 'Bearer ' . $config->access_token,
-            'x-myobapi-key'     => $config->client_id,
+            'x-myobapi-key'     => config('myob.client_id'),
             'x-myobapi-version' => 'v2',
             'x-myobapi-cftoken' => $config->company_file_token,
-            'Accept'            => 'application/json',
-            'Content-Type'      => 'application/json',
+            'Accept-Encoding'   => 'gzip,deflate',
         ]);
     }
 
