@@ -1,0 +1,61 @@
+<?php
+
+namespace Webfox\MYOB;
+
+use Exception;
+use Webfox\MYOB\Models\MyobConfiguration;
+use Webfox\MYOB\Authentication\Authenticate;
+
+class MYOB
+{
+    protected Authenticate $authenticate;
+
+    public function __construct()
+    {
+        $this->authenticate = new Authenticate();
+    }
+
+    public function authenticate(): Authenticate
+    {
+        return $this->authenticate;
+    }
+
+    public function getConfig()
+    {
+        $config = MyobConfiguration::first();
+
+        if (!$config) {
+            throw new Exception('No MYOB configuration found');
+        }
+
+        if ($config->expires_at->isPast()) {
+            $config = $this->authenticate->getToken($config->refresh_token);
+        }
+
+        return $config;
+    }
+    protected function getRequest()
+    {
+        $config = $this->getConfig();
+
+        return new MYOBRequest([
+            'Authorization'     => 'Bearer ' . $config->access_token,
+            'x-myobapi-key'     => $config->client_id,
+            'x-myobapi-version' => 'v2',
+            'x-myobapi-cftoken' => $config->company_file_token,
+            'Accept'            => 'application/json',
+            'Content-Type'      => 'application/json',
+        ]);
+    }
+
+    public function get($endpoint, ?array $options = null)
+    {
+        $this->getRequest()->get($endpoint, $options);
+    }
+
+    public function post($endpoint, $data)
+    {
+        $this->getRequest()->post($endpoint, $data);
+    }
+
+}
