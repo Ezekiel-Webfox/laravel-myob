@@ -1,0 +1,67 @@
+{
+  "name": "webfox/laravel-myob",
+  "description": "Laravel Wrapper for MYOB Api",
+  "keywords": ["laravel", "myob", "api"],
+  "homepage": "https://github.com/Ezekiel-Webfox/laravel-myob",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Webfox Developments Ltd",
+      "email": "developers@webfox.co.nz",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "spatie/laravel-package-tools": "^1.14.0",
+    "illuminate/support": "^9.0",
+    "illuminate/database": "^9.0",
+    "illuminate/config": "^9.0",
+    "guzzlehttp/guzzle": "^7.0",
+    "nesbot/carbon": "^2.62"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.0",
+    "nunomaduro/collision": "^6.0",
+    "nunomaduro/larastan": "^2.0.1",
+    "orchestra/testbench": "^7.0",
+    "pestphp/pest": "^1.21",
+    "pestphp/pest-plugin-laravel": "^1.1",
+    "phpstan/extension-installer": "^1.1",
+    "phpstan/phpstan-deprecation-rules": "^1.0",
+    "phpstan/phpstan-phpunit": "^1.0",
+    "phpunit/phpunit": "^9.5"
+  },
+  "autoload": {
+    "psr-4": {
+      "Webfox\\MYOB\\": "src"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Webfox\\MYOB\\Tests\\": "tests"
+    }
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/pest",
+    "test-coverage": "vendor/bin/pest --coverage",
+    "format": "vendor/bin/pint"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Webfox\\MYOB\\MYOBServiceProvider"
+      ]
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
+}
