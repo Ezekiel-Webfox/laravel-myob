@@ -82,6 +82,11 @@ class Authenticate
         ]);
     }
 
+    public function disconnect()
+    {
+        MyobConfiguration::first()->delete();
+    }
+
     protected function updateConfiguration($data)
     {
         return MyobConfiguration::updateOrCreate(['id' => 1], $data);
