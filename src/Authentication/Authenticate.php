@@ -75,7 +75,7 @@ class Authenticate
     public function saveCompanyFileCredentials($data)
     {
         $this->updateConfiguration([
-            'company_file_token' => base64_encode($data['username']) . ':' . base64_encode($data['password']),
+            'company_file_token' => base64_encode($data['username'] . ':' . $data['password']),
             'company_file_id'    => $data['company_file_id'],
             'company_file_name'  => $data['company_file_name'],
             'company_file_uri'   => stripslashes($data['company_file_uri']),
