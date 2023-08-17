@@ -8,6 +8,7 @@ use Webfox\MYOB\MYOBFacade;
 use Webfox\MYOB\MYOBRequest;
 use GuzzleHttp\ClientInterface;
 use Webfox\MYOB\Models\MyobConfiguration;
+use GuzzleHttp\Exception\RequestException;
 
 class Authenticate
 {
@@ -88,9 +89,19 @@ class Authenticate
             ]
         ]);
 
-        $response = $request->get($data['company_file_uri'] . '/CurrentUser');
+        try {
+            $response = $request->get($data['company_file_uri'] . '/CurrentUser');
+        } catch (RequestException $e) {
+            if ($e->hasResponse()) {
+                $response = $e->getResponse();
+                if ($response->getStatusCode() === 401) {
+                    return false;
+                }
+            }
+            throw $e;
+        }
 
-        return $response->getStatusCode() > 299 || $response->getStatusCode() < 200 ? false : true;
+        return !($response->getStatusCode() > 299 || $response->getStatusCode() < 200);
     }
 
     public function saveCompanyFileCredentials($data)
