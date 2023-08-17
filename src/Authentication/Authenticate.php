@@ -4,6 +4,8 @@ namespace Webfox\MYOB\Authentication;
 
 use Exception;
 use GuzzleHttp\Client;
+use Webfox\MYOB\MYOBFacade;
+use Webfox\MYOB\MYOBRequest;
 use GuzzleHttp\ClientInterface;
 use Webfox\MYOB\Models\MyobConfiguration;
 
@@ -70,6 +72,25 @@ class Authenticate
             'refresh_token' => $body['refresh_token'],
             'scope'         => $body['scope'],
         ]);
+    }
+
+    public function checkCompanyFileCredentials($data)
+    {
+        $config = MYOBFacade::getConfig();
+
+        $request = new MYOBRequest([
+            'headers' => [
+                'Authorization'     => 'Bearer ' . $config->access_token,
+                'x-myobapi-key'     => config('myob.client_id'),
+                'x-myobapi-version' => 'v2',
+                'x-myobapi-cftoken' => base64_encode($data['username'] . ':' . $data['password']),
+                'Accept-Encoding'   => 'gzip,deflate',
+            ]
+        ]);
+
+        $response = $request->get($data['company_file_uri'] . '/CurrentUser');
+
+        return $response->getStatusCode() > 299 || $response->getStatusCode() < 200 ? false : true;
     }
 
     public function saveCompanyFileCredentials($data)
