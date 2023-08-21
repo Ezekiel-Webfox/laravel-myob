@@ -75,18 +75,23 @@ class Authenticate
         ]);
     }
 
-    public function checkCompanyFileCredentials($data)
+    public function checkCompanyFileCredentials($data): bool
     {
         $config = MYOBFacade::getConfig();
 
+        $requestHeaders = [
+            'Authorization'     => 'Bearer ' . $config->access_token,
+            'x-myobapi-key'     => config('myob.client_id'),
+            'x-myobapi-version' => 'v2',
+            'Accept-Encoding'   => 'gzip,deflate',
+        ];
+
+        if (isset($data['username']) && isset($data['password'])) {
+            $requestHeaders['x-myobapi-cftoken'] = base64_encode($data['username'] . ':' . $data['password']);
+        }
+
         $request = new MYOBRequest([
-            'headers' => [
-                'Authorization'     => 'Bearer ' . $config->access_token,
-                'x-myobapi-key'     => config('myob.client_id'),
-                'x-myobapi-version' => 'v2',
-                'x-myobapi-cftoken' => base64_encode($data['username'] . ':' . $data['password']),
-                'Accept-Encoding'   => 'gzip,deflate',
-            ]
+            'headers' => $requestHeaders,
         ]);
 
         try {
@@ -104,14 +109,19 @@ class Authenticate
         return !($response->getStatusCode() > 299 || $response->getStatusCode() < 200);
     }
 
-    public function saveCompanyFileCredentials($data)
+    public function saveCompanyFileCredentials($data): void
     {
-        $this->updateConfiguration([
-            'company_file_token' => base64_encode($data['username'] . ':' . $data['password']),
+        $config = [
             'company_file_id'    => $data['company_file_id'],
             'company_file_name'  => $data['company_file_name'],
             'company_file_uri'   => stripslashes($data['company_file_uri']),
-        ]);
+        ];
+
+        if (isset($data['username']) && isset($data['password'])) {
+            $config['company_file_token'] = base64_encode($data['username'] . ':' . $data['password']);
+        }
+
+        $this->updateConfiguration($config);
     }
 
     public function disconnect()

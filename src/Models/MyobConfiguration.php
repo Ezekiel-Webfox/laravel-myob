@@ -36,7 +36,6 @@ class MyobConfiguration extends Model
         return Attribute::make(
             get: function ($val, $attributes) {
                 return $attributes['company_file_id']
-                    && $attributes['company_file_token']
                     && $attributes['company_file_name']
                     && $attributes['company_file_uri'];
             }

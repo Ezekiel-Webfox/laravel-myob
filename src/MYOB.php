@@ -39,14 +39,19 @@ class MYOB
     {
         $config = $this->getConfig();
 
+        $headers = [
+            'Authorization'     => 'Bearer ' . $config->access_token,
+            'x-myobapi-key'     => config('myob.client_id'),
+            'x-myobapi-version' => 'v2',
+            'Accept-Encoding'   => 'gzip,deflate',
+        ];
+
+        if ($config->company_file_token) {
+            $headers['x-myobapi-cftoken'] = $config->company_file_token;
+        }
+
         return new MYOBRequest([
-            'headers' => [
-                'Authorization'     => 'Bearer ' . $config->access_token,
-                'x-myobapi-key'     => config('myob.client_id'),
-                'x-myobapi-version' => 'v2',
-                'x-myobapi-cftoken' => $config->company_file_token,
-                'Accept-Encoding'   => 'gzip,deflate',
-            ]
+            'headers' => $headers,
         ]);
     }
 
