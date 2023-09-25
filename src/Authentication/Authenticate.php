@@ -40,7 +40,7 @@ class Authenticate
      * @throws \Exception
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getToken($refreshToken = null, $code = null)
+    public function getTokens($refreshToken = null, $code = null): array
     {
         if (!$refreshToken && !$code) {
             throw new Exception('No code or refresh token provided');
@@ -68,69 +68,10 @@ class Authenticate
 
         $body = json_decode($response->getBody()->getContents(), true);
 
-        return $this->updateConfiguration([
+        return [
             'access_token'  => $body['access_token'],
             'refresh_token' => $body['refresh_token'],
             'scope'         => $body['scope'],
-        ]);
-    }
-
-    public function checkCompanyFileCredentials($data): bool
-    {
-        $config = MYOBFacade::getConfig();
-
-        $requestHeaders = [
-            'Authorization'     => 'Bearer ' . $config->access_token,
-            'x-myobapi-key'     => config('myob.client_id'),
-            'x-myobapi-version' => 'v2',
-            'Accept-Encoding'   => 'gzip,deflate',
         ];
-
-        if (isset($data['username']) && isset($data['password'])) {
-            $requestHeaders['x-myobapi-cftoken'] = base64_encode($data['username'] . ':' . $data['password']);
-        }
-
-        $request = new MYOBRequest([
-            'headers' => $requestHeaders,
-        ]);
-
-        try {
-            $response = $request->get($data['company_file_uri'] . '/CurrentUser');
-        } catch (RequestException $e) {
-            if ($e->hasResponse()) {
-                $response = $e->getResponse();
-                if ($response->getStatusCode() === 401) {
-                    return false;
-                }
-            }
-            throw $e;
-        }
-
-        return !($response->getStatusCode() > 299 || $response->getStatusCode() < 200);
-    }
-
-    public function saveCompanyFileCredentials($data): void
-    {
-        $config = [
-            'company_file_id'    => $data['company_file_id'],
-            'company_file_name'  => $data['company_file_name'],
-            'company_file_uri'   => stripslashes($data['company_file_uri']),
-        ];
-
-        if (isset($data['username']) && isset($data['password'])) {
-            $config['company_file_token'] = base64_encode($data['username'] . ':' . $data['password']);
-        }
-
-        $this->updateConfiguration($config);
-    }
-
-    public function disconnect()
-    {
-        MyobConfiguration::first()->delete();
-    }
-
-    protected function updateConfiguration($data)
-    {
-        return MyobConfiguration::updateOrCreate(['id' => 1], $data);
     }
 }

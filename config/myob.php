@@ -7,4 +7,5 @@ return [
     'redirect_uri'  => env('MYOB_REDIRECT_URI', 'myob/callback'),
     'scope'         => env('MYOB_SCOPE', 'CompanyFile'),
     'grant_type'    => env('MYOB_GRANT_TYPE', 'authorization_code'),
+    'config_model'  => 'Webfox\\MYOB\\Models\\MyobConfiguration',
 ];
