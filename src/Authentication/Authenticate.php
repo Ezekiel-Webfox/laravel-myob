@@ -31,16 +31,29 @@ class Authenticate
         $this->client = $client ?? new Client();
     }
 
-    public function getAuthUrl(): string
+    protected function getConfig(?array $overrides=[])
     {
-        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $this->clientId . '&redirect_uri=' . urlencode($this->redirectUrl) . '&response_type=code&scope=' . $this->scope);
+        return array_merge([
+            'client_id'     => $this->clientId,
+            'client_secret' => $this->clientSecret,
+            'redirect_uri'  => $this->redirectUrl,
+            'grant_type'    => $this->grantType,
+            'scope'         => $this->scope,
+        ], $overrides);
+    }
+
+    public function getAuthUrl(?array $overrides=null): string
+    {
+        $config = $this->getConfig($overrides);
+
+        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $config['client_id'] . '&redirect_uri=' . urlencode($config['redirect_uri']) . '&response_type=code&scope=' . $config['scope']);
     }
 
     /**
      * @throws \Exception
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function getTokens($refreshToken = null, $code = null): array
+    public function getTokens($refreshToken = null, $code = null, ?array $configOverrides=null): array
     {
         if (!$refreshToken && !$code) {
             throw new Exception('No code or refresh token provided');
@@ -48,15 +61,17 @@ class Authenticate
             throw new Exception('Both code and refresh token provided');
         }
 
+        $config = $this->getConfig($configOverrides);
+
         $response = $this->client->post('https://secure.myob.com/oauth2/v1/authorize', [
             'headers'     => [
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
             'form_params' => [
-                'client_id'     => $this->clientId,
-                'client_secret' => $this->clientSecret,
-                'redirect_uri'  => $this->redirectUrl,
-                'grant_type'    => $refreshToken ? 'refresh_token' : $this->grantType,
+                'client_id'     => $config['client_id'],
+                'client_secret' => $config['client_secret'],
+                'redirect_uri'  => $config['redirect_uri'],
+                'grant_type'    => $refreshToken ? 'refresh_token' : $config['grant_type'],
                 'code'          => $code,
                 'refresh_token' => $refreshToken,
             ],
