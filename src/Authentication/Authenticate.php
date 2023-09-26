@@ -45,8 +45,9 @@ class Authenticate
     public function getAuthUrl(?array $overrides=[]): string
     {
         $config = $this->getConfig($overrides);
+        $state = $config['state'] ? '&state=' . urlencode($config['state']) : '';
 
-        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $config['client_id'] . '&redirect_uri=' . urlencode($config['redirect_uri']) . '&response_type=code&scope=' . $config['scope']);
+        return ('https://secure.myob.com/oauth2/account/authorize?client_id=' . $config['client_id'] . '&redirect_uri=' . urlencode($config['redirect_uri']) . '&response_type=code&scope=' . $config['scope'] . $state);
     }
 
     /**
